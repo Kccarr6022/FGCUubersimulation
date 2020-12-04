@@ -1,1 +1,260 @@
+#! Kaden Carr
+"""Provides a description of software usage
 
+Uberjoin- model of Uber on Python. The following application will provide
+a transportation system specifically designed for Florida Gulf Coast
+University. When the user enters the application they will be
+prompted for a phone number, once logged in various destinations and
+starting positions will be given to the user. Once the location and
+destination is selected, the user will receive a calculation for the
+total cost per is selected, the user will receive a calculation for the
+total cost is selected, the user will receive a calculation for the
+total is selected, the user will receive a calculation for the total
+cost per mile of the service and the purchase will be sent by phone
+to both parties. mile of the service and the purchase will be sent by
+phone to both mile of the service and the purchase will be sent by phone
+to both parties.
+"""
+
+
+import time
+import random
+import string
+from twilio.rest import Client
+from twilio.base.exceptions import TwilioRestException
+from twilio_account import twilio_pin
+from twilio_account import twilio_token
+from twilio_account import twilio_number
+from twilio_account import verified_drivers
+from twilio_account import verified_numbers
+import haversine as hs
+
+__author__ = "Kaden Carr"
+
+# Cost of services (Variable initializations)
+budget = 100
+distance = 0
+tax = 0.07
+percent_cut = 0.05
+driver_fee = 2
+cost_per_mile = 1.25
+driver_tip = 0
+
+# List of quotes
+quotes_list = [
+    "A driver will be with you shortly.",
+    "Drivers have been notified!",
+    "A Fasttrack driver is on their way!",
+    "A driver will arrive shortly!"
+]
+
+
+# Random generation of quotes
+def random_confirmation_quote():
+    message = quotes_list[random.randint(0, len(quotes_list)-1)]
+    return message
+
+
+# Locations
+def location_list():
+        print("­" * 2 ** 4)
+        print("01 = South Village")
+        print("02 = North Village")
+        print("03 = Main Campus")
+        print("04 = Target")
+        print("05 = Softball/Soccer Fields")
+        print("06 = University Village Shops")
+        print("07 = Student Health Services")
+        print("­" * 2 ** 4)
+
+
+# Function generates content for your text
+def quote(price, point_a, point_b):
+    client_position = "Client position: " + point_a
+    requested_destination = "\nRequested destination: " + point_b
+    pricing = "\nTotal: " + price
+    content = client_position + requested_destination + pricing
+    return content
+
+
+# Cooldown timer
+def cooldown(seconds):
+    for timing in range(seconds, 0, -1):
+        time.sleep(1)
+        print("Continuing in " + str(timing))
+
+
+# Sends message to verified number(Upgrade from trial version/ change key)
+# https://github.com/TheComeUpCode/AutomateTexting/
+def send_message(phone_number, message):
+    account = twilio_pin
+    token = twilio_token
+    client = Client(account, token)
+    client.messages.create(to=phone_number, from_=twilio_number, body=message)
+
+
+# Displays total cost before order
+def display_decision():
+    print("Distance: " + string_distance + " miles",
+          "Total cost of trip: " + string_price, sep="\n", end="\n")
+    print("Dollars Necessary: ", string_dollars_necessary, sep=' ')
+    print("­" * 2 ** 4)
+
+
+print("Welcome to Uberjoin!")
+# Collects phone number from user
+cellphone = 'a'
+try:
+    while not all(char in string.digits for char in cellphone)\
+            or len(cellphone) != 10:
+        cellphone = input("Enter your 10 digit phone number: ")
+except all(char in string.digits for char in cellphone):
+    cellphone = 'a'
+
+# Restarts process if user selects "N" to confirm destination
+confirm_destination = "1"
+while confirm_destination != "Y":
+    location_list()
+
+    # Prevents crashes and invalid user inputs
+    starting = 0
+    while starting < 1 or starting > 7:
+        try:
+            starting = int(input("Select a starting position(number 1­-7): "))
+        except ValueError:
+            starting = 0
+
+    # Assigns a name based on user input and coordinates
+    if starting == 1:
+        string_start = "South Village"
+        location1 = (26.460116131272162, -81.76735672173581)
+    elif starting == 2:
+        string_start = "North Village"
+        location1 = (26.470613922053168, -81.77071065573922)
+    elif starting == 3:
+        string_start = "Main Campus"
+        location1 = (26.465740260118007, -81.77025881723091)
+    elif starting == 4:
+        string_start = "Target"
+        location1 = (26.483258656600974, -81.78719762564258)
+    elif starting == 5:
+        string_start = "Softball/Soccer Fields"
+        location1 = (26.464199703301293, -81.76927295067344)
+    elif starting == 6:
+        string_start = "University Village Shops"
+        location1 = (26.452253795047234, -81.77371386019662)
+    else:
+        string_start = "Student Health Services"
+        location1 = (26.46007010295064, -81.77282327880279)
+
+    # Include a prompt of continuation
+    print("­" * 2 ** 4)
+    print("You have selected", string_start)
+    location_list()
+
+    # Prevents crashes and invalid user inputs
+    destination = 0
+    while destination < 1 or destination > 7 or destination == starting:
+        try:
+            destination = \
+                int(input("Select a destination(number 1-­7): "))
+        except ValueError:
+            destination = 0
+
+    # Assigns name based on selection and coordinates for destination
+    if destination == 1:
+        string_destination = "South Village"
+        location2 = (26.460116131272162, -81.76735672173581)
+    elif destination == 2:
+        string_destination = "North Village"
+        location2 = (26.470613922053168, -81.77071065573922)
+    elif destination == 3:
+        string_destination = "Main Campus"
+        location2 = (26.465740260118007, -81.77025881723091)
+    elif destination == 4:
+        string_destination = "Target"
+        location2 = (26.483258656600974, -81.78719762564258)
+    elif destination == 5:
+        string_destination = "Softball/Soccer Fields"
+        location2 = (26.464199703301293, -81.76927295067344)
+    elif destination == 6:
+        string_destination = "University Village Shops"
+        location2 = (26.452253795047234, -81.77371386019662)
+    else:
+        string_destination = "Student Health Services"
+        location2 = (26.46007010295064, -81.77282327880279)
+
+    # mathematical operators used to calculate trip pricing
+    # distance is formatted in km but is converted to miles
+    distance = (hs.haversine(location1, location2) * (621371/1000000))
+    price_per_miles = distance * cost_per_mile
+    total_price = distance * price_per_miles + driver_fee + percent_cut * \
+        ((distance * cost_per_mile) + driver_fee) + tax * \
+        ((distance * cost_per_mile) + driver_fee) + driver_tip
+    dollars_necessary = int((total_price // (1 % 2)))
+    dollars_necessary += 1
+
+    # Changes the format of the calculations to strings.
+    string_distance = "{:,.2f}".format(distance)
+    string_price_per_miles = "${:,.2f}".format(price_per_miles)
+    string_price = "${:,.2f}".format(total_price)
+    string_dollars_necessary = "${}".format(dollars_necessary)
+    display_decision()
+
+    # Confirms destination here. Uses while loop to ensure robustness.
+    confirm_prompt = "1"
+    prompt = string_start + " to " + string_destination + "? Y/N: "
+    while confirm_prompt != "Y" and confirm_prompt != "N":
+        confirm_prompt = input(prompt).upper()
+        if confirm_prompt == "Y":
+            confirm_destination = "Y"
+        else:
+            confirm_destination = "N"
+
+# Sends a text message to you and a verified driver (Requires Twilio full)
+print("Details about your location will be sent to " + cellphone)
+cooldown(3)
+
+# sends checkout details to user
+try:
+    send_message(cellphone, quote(string_price,
+                 string_start, string_destination))
+    send_message(cellphone,
+                 "Dollars Required: " + string_dollars_necessary)
+    print("Checkout details have been sent to your phone number!")
+except TwilioRestException:
+    print("Unverified number!",
+          "", sep="\n")
+    time.sleep(3)
+    print("Your number is not verified under the Twilio account in our system",
+          "Checkout details could not be sent to your phone...",
+          "", sep="\n", end="\n")
+    time.sleep(4)
+    print("If you are an administrator you can create a free twilio account",
+          "and update the twilio_pin, twilio_token, and twilio phone number.",
+          "Otherwise, your order is still being processed!",
+          "", sep="\n", end="\n")
+    time.sleep(15)
+    print("Checkout details: ",
+          quote(string_price, string_start, string_destination),
+          sep="\n")
+
+# sends checkout details to drivers
+try:
+    time.sleep(4)
+    print("",
+          "Attempting to send details to our verified drivers...",
+          "",
+          sep="\n", end="\n")
+    time.sleep(3)
+    for t in range(0, len(verified_drivers)-1):
+        send_message(verified_numbers[t],
+                     quote(string_price, string_start, string_destination))
+    print(random_confirmation_quote())
+except TwilioRestException:
+    time.sleep(3)
+    print("",
+          "Checkout details could not be sent to a valid driver.",
+          sep="\n")
+    time.sleep(2)
+    print("", "Your order is invalid.", sep="\n")
