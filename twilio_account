@@ -1,19 +1,19 @@
 __author__ = "Kaden Carr"
 
 # Personal trial account values (Change to your account)
-twilio_pin = "AC3046b4d1798fe9941ee9a91a836e79ba"
-twilio_token = "b80fed1c86eaa61d6393dfd41ef405b3"
-twilio_number = "+18064509393"
+twilio_pin = "twilio_pin from twilio.com"
+twilio_token = "twilio token"
+twilio_number = "+xxxxxxxxxx"
 
 # Numbers verified for specific Twilio account
 verified_numbers = [
- "9412501194",
- "9419933078"
+ "xxxxxxxxxx",
+ "xxxxxxxxxx"
  ]
  
 # Index the name of the driver in the same position as the number
 verified_drivers = [
- "Kaden Carr",
- "Greg Eric"
+ "",
+ ""
  ]
  
